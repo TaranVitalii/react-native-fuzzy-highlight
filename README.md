@@ -8,7 +8,7 @@
 Highlight the parts of a string that match a search query — tolerant of typos, without over-highlighting. Searching `Acme zyntek` highlights `Acme` inside a mistyped `Acma`, highlights `zyntek` wherever it appears, and leaves unrelated words alone. Typing just `Acm` highlights only `Acm` inside `Acme`, not the trailing `e`.
 
 - **Typo-tolerant, per word** — each word of the query is matched independently against each word of the target text, so word order in the query doesn't matter.
-- **Highlights only what matched** — a partial query (`Nik`) highlights only the matched prefix, not the rest of the word it's typing towards.
+- **Highlights only what matched** — a partial query (`Acm`) highlights only the matched prefix, not the rest of the word it's typing towards.
 - **No over-matching on short words** — words under 4 characters require an exact prefix; typo tolerance only kicks in once there's enough signal to make it safe.
 - **Headless core** — the matching logic is plain, framework-agnostic TypeScript (`computeHighlightRanges`); the React Native `<HighlightText>` component is a thin, memoized renderer on top.
 
