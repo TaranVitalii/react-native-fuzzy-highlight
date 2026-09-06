@@ -8,19 +8,19 @@ function highlighted(text: string, query: string) {
 
 describe('computeHighlightRanges', () => {
   it('fuzzy-matches a whole mistyped word and skips unrelated words', () => {
-    expect(highlighted('Nika super airmax', 'Nike airmax')).toEqual([
-      'Nika',
-      'airmax',
+    expect(highlighted('Acma super zyntek', 'Acme zyntek')).toEqual([
+      'Acma',
+      'zyntek',
     ]);
   });
 
   it('highlights only the matched prefix, not the rest of a longer word', () => {
-    const ranges = computeHighlightRanges('Nike super airmax', 'Nik');
+    const ranges = computeHighlightRanges('Acme super zyntek', 'Acm');
     expect(ranges).toEqual([{ start: 0, end: 3 }]);
   });
 
   it('is case-insensitive', () => {
-    expect(highlighted('NIKE AIRMAX', 'nike')).toEqual(['NIKE']);
+    expect(highlighted('ACME ZYNTEK', 'acme')).toEqual(['ACME']);
   });
 
   it('does not tolerate typos in short words (< 4 chars)', () => {
@@ -28,26 +28,26 @@ describe('computeHighlightRanges', () => {
   });
 
   it('tolerates one substitution for medium words (4-7 chars)', () => {
-    expect(highlighted('airmax', 'airnax')).toEqual(['airmax']);
+    expect(highlighted('zyntek', 'zyntok')).toEqual(['zyntek']);
   });
 
   it('rejects a word once mismatches exceed the threshold', () => {
-    expect(highlighted('airmax', 'aqqax')).toEqual([]);
+    expect(highlighted('zyntek', 'zqqte')).toEqual([]);
   });
 
   it('returns nothing for an empty or whitespace-only query', () => {
-    expect(computeHighlightRanges('Nike airmax', '')).toEqual([]);
-    expect(computeHighlightRanges('Nike airmax', '   ')).toEqual([]);
+    expect(computeHighlightRanges('Acme zyntek', '')).toEqual([]);
+    expect(computeHighlightRanges('Acme zyntek', '   ')).toEqual([]);
   });
 
   it('returns nothing for empty text', () => {
-    expect(computeHighlightRanges('', 'nike')).toEqual([]);
+    expect(computeHighlightRanges('', 'acme')).toEqual([]);
   });
 
   it('matches target tokens regardless of query word order', () => {
-    expect(highlighted('Nike airmax', 'airmax nike')).toEqual([
-      'Nike',
-      'airmax',
+    expect(highlighted('Acme zyntek', 'zyntek acme')).toEqual([
+      'Acme',
+      'zyntek',
     ]);
   });
 
