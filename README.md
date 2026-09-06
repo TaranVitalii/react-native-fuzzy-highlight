@@ -93,14 +93,6 @@ const ranges = computeHighlightRanges('Nika super airmax', 'Nike airmax');
 | `style` | `StyleProp<TextStyle>` | — | Style applied to the outer `Text`, same as a regular `<Text style>`. |
 | ...rest | `TextProps` | — | Any other `Text` prop (`numberOfLines`, `onPress`, etc.) is passed through. |
 
-## Roadmap
-
-This is the v1 release: pure JS/TS, whitespace tokenization, Latin/Cyrillic-friendly case-folding. Planned next:
-
-- Caching and scheduling optimizations for very large lists.
-- Proper Unicode word segmentation for languages without spaces between words (CJK, Thai).
-- Optional native renderer for pathological large-list cases.
-
 ## Contributing
 
 - [Development workflow](CONTRIBUTING.md#development-workflow)
