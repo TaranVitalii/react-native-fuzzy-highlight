@@ -79,6 +79,10 @@ const ranges = computeHighlightRanges('Nika super airmax', 'Nike airmax');
 
 `HighlightRange` is `{ start: number; end: number }`, indexing into the original `text` string.
 
+### Caching
+
+`useHighlightRanges` (and therefore `<HighlightText>`) shares a single bounded LRU cache (500 entries) across your whole app, keyed by `(text, query)`. This helps beyond what a per-component `useMemo` can: repeated pairs across different rows (duplicate list items) or across remounts (a row scrolled out of a virtualized list's recycling window and back in) skip recomputation. `computeHighlightRanges` itself stays uncached and pure, for headless or test use. If you need caching without React, use `getCachedHighlightRanges` directly; `clearHighlightRangesCache()` resets it.
+
 ## Props
 
 | Prop | Type | Default | Description |
