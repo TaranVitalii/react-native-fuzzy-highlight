@@ -5,14 +5,14 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/TaranVitalii/react-native-fuzzy-highlight/pulls)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-brightgreen.svg)](https://github.com/TaranVitalii/react-native-fuzzy-highlight)
 
-Highlight the parts of a string that match a search query — tolerant of typos, without over-highlighting. Searching `Nike airmax` highlights `Nike` inside a mistyped `Nika`, highlights `airmax` wherever it appears, and leaves unrelated words alone. Typing just `Nik` highlights only `Nik` inside `Nike`, not the trailing `e`.
+Highlight the parts of a string that match a search query — tolerant of typos, without over-highlighting. Searching `Acme zyntek` highlights `Acme` inside a mistyped `Acma`, highlights `zyntek` wherever it appears, and leaves unrelated words alone. Typing just `Acm` highlights only `Acm` inside `Acme`, not the trailing `e`.
 
 <p align="center">
-  <img src="./docs/example.png" width="320" alt="Searching 'Nike' highlights 'Nika' (typo-tolerant) and 'Nike' in the list, leaving unrelated words alone" />
+  <img src="./docs/example.png" width="320" alt="Searching 'Acme' highlights 'Acma' (typo-tolerant) and 'Acme' in the list, leaving unrelated words alone" />
 </p>
 
 - **Typo-tolerant, per word** — each word of the query is matched independently against each word of the target text, so word order in the query doesn't matter.
-- **Highlights only what matched** — a partial query (`Nik`) highlights only the matched prefix, not the rest of the word it's typing towards.
+- **Highlights only what matched** — a partial query (`Acm`) highlights only the matched prefix, not the rest of the word it's typing towards.
 - **No over-matching on short words** — words under 4 characters require an exact prefix; typo tolerance only kicks in once there's enough signal to make it safe.
 - **Headless core** — the matching logic is plain, framework-agnostic TypeScript (`computeHighlightRanges`); the React Native `<HighlightText>` component is a thin, memoized renderer on top.
 
@@ -20,8 +20,8 @@ Highlight the parts of a string that match a search query — tolerant of typos,
 
 Both the query and the target text are split into words. Each target word is compared against every query word using an **anchored fuzzy-prefix match**: characters are compared from the start of both words, allowing a small number of substitutions before giving up — no insertions/deletions, so the match length is simply `min(query.length, target.length)`. That one rule produces both behaviors above for free:
 
-- `"Nike"` vs `"Nika"` — same length, 1 substitution → the whole 4-character word is highlighted.
-- `"Nik"` vs `"Nike"` — 3 characters compared, 0 substitutions → only those 3 characters are highlighted.
+- `"Acme"` vs `"Acma"` — same length, 1 substitution → the whole 4-character word is highlighted.
+- `"Acm"` vs `"Acme"` — 3 characters compared, 0 substitutions → only those 3 characters are highlighted.
 
 How many substitutions are tolerated scales with word length, so short words stay exact:
 
@@ -31,21 +31,21 @@ How many substitutions are tolerated scales with word length, so short words sta
 | 4–7 chars | 1 |
 | ≥ 8 chars | 2 |
 
-Matching and rendering are case-insensitive by default and independent of query word order — `"airmax nike"` matches the same words as `"nike airmax"`.
+Matching and rendering are case-insensitive by default and independent of query word order — `"zyntek acme"` matches the same words as `"acme zyntek"`.
 
 Both are configurable via `matchOptions` (on `<HighlightText>`, `useHighlightRanges`, and `computeHighlightRanges`):
 
 ```tsx
 <HighlightText
-  text="New balance airmax"
-  query="max"
-  matchOptions={{ mode: 'contains' }} // matches "max" inside "airmax", not just word-initial
+  text="Lumen zyntek"
+  query="tek"
+  matchOptions={{ mode: 'contains' }} // matches "tek" inside "zyntek", not just word-initial
 />
 ```
 
 ```ts
 // stricter or looser than the default table
-computeHighlightRanges('airmax', 'airnax', { typoTolerance: () => 0 }); // => [] (no tolerance)
+computeHighlightRanges('zyntek', 'zyntok', { typoTolerance: () => 0 }); // => [] (no tolerance)
 ```
 
 `matchOptions` is compared by reference in `useHighlightRanges`'s memoization — pass a stable object (e.g. defined outside the component, or via `useMemo`) rather than a fresh literal on every render.
@@ -94,7 +94,7 @@ import { useHighlightRanges, computeHighlightRanges } from 'react-native-fuzzy-h
 const ranges = useHighlightRanges(text, query);
 
 // or outside React entirely
-const ranges = computeHighlightRanges('Nika super airmax', 'Nike airmax');
+const ranges = computeHighlightRanges('Acma super zyntek', 'Acme zyntek');
 // => [{ start: 0, end: 4 }, { start: 11, end: 17 }]
 ```
 

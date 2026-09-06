@@ -8,9 +8,9 @@ export type HighlightMatchMode = 'prefix' | 'contains';
 export interface HighlightMatchOptions {
   /**
    * 'prefix' (default): a query word must match starting from the
-   * beginning of a target word (typo-tolerant) — e.g. "Nik" matches "Nike".
+   * beginning of a target word (typo-tolerant) — e.g. "Acm" matches "Acme".
    * 'contains': a query word may match starting anywhere inside a target
-   * word — e.g. "max" matches inside "airmax".
+   * word — e.g. "tek" matches inside "zyntek".
    */
   mode?: HighlightMatchMode;
   /**

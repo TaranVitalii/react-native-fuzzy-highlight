@@ -9,15 +9,15 @@ import {
 import { HighlightText } from 'react-native-fuzzy-highlight';
 
 const PRODUCTS = [
-  'Nika super airmax',
-  'Nike air force 1',
-  'Adidas superstar',
-  'Nike zoom pegasus',
-  'New balance airmax',
+  'Acma super zyntek',
+  'Acme comet flow',
+  'Vortex glimmer',
+  'Acme lunar drift',
+  'Lumen zyntek',
 ];
 
 export default function App() {
-  const [query, setQuery] = useState('Nike airmax');
+  const [query, setQuery] = useState('Acme zyntek');
 
   return (
     <SafeAreaView style={styles.container}>

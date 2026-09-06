@@ -13,19 +13,19 @@ function highlighted(
 
 describe('computeHighlightRanges', () => {
   it('fuzzy-matches a whole mistyped word and skips unrelated words', () => {
-    expect(highlighted('Nika super airmax', 'Nike airmax')).toEqual([
-      'Nika',
-      'airmax',
+    expect(highlighted('Acma super zyntek', 'Acme zyntek')).toEqual([
+      'Acma',
+      'zyntek',
     ]);
   });
 
   it('highlights only the matched prefix, not the rest of a longer word', () => {
-    const ranges = computeHighlightRanges('Nike super airmax', 'Nik');
+    const ranges = computeHighlightRanges('Acme super zyntek', 'Acm');
     expect(ranges).toEqual([{ start: 0, end: 3 }]);
   });
 
   it('is case-insensitive', () => {
-    expect(highlighted('NIKE AIRMAX', 'nike')).toEqual(['NIKE']);
+    expect(highlighted('ACME ZYNTEK', 'acme')).toEqual(['ACME']);
   });
 
   it('does not tolerate typos in short words (< 4 chars)', () => {
@@ -33,26 +33,26 @@ describe('computeHighlightRanges', () => {
   });
 
   it('tolerates one substitution for medium words (4-7 chars)', () => {
-    expect(highlighted('airmax', 'airnax')).toEqual(['airmax']);
+    expect(highlighted('zyntek', 'zyntok')).toEqual(['zyntek']);
   });
 
   it('rejects a word once mismatches exceed the threshold', () => {
-    expect(highlighted('airmax', 'aqqax')).toEqual([]);
+    expect(highlighted('zyntek', 'zqqte')).toEqual([]);
   });
 
   it('returns nothing for an empty or whitespace-only query', () => {
-    expect(computeHighlightRanges('Nike airmax', '')).toEqual([]);
-    expect(computeHighlightRanges('Nike airmax', '   ')).toEqual([]);
+    expect(computeHighlightRanges('Acme zyntek', '')).toEqual([]);
+    expect(computeHighlightRanges('Acme zyntek', '   ')).toEqual([]);
   });
 
   it('returns nothing for empty text', () => {
-    expect(computeHighlightRanges('', 'nike')).toEqual([]);
+    expect(computeHighlightRanges('', 'acme')).toEqual([]);
   });
 
   it('matches target tokens regardless of query word order', () => {
-    expect(highlighted('Nike airmax', 'airmax nike')).toEqual([
-      'Nike',
-      'airmax',
+    expect(highlighted('Acme zyntek', 'zyntek acme')).toEqual([
+      'Acme',
+      'zyntek',
     ]);
   });
 
@@ -62,19 +62,19 @@ describe('computeHighlightRanges', () => {
 
   describe('mode: "contains"', () => {
     it('matches a query word starting anywhere inside a target word', () => {
-      expect(
-        highlighted('New balance airmax', 'max', { mode: 'contains' })
-      ).toEqual(['max']);
+      expect(highlighted('Lumen zyntek', 'tek', { mode: 'contains' })).toEqual([
+        'tek',
+      ]);
     });
 
     it('still matches at the start of a word (superset of prefix mode)', () => {
       expect(
-        highlighted('Nika super airmax', 'Nike airmax', { mode: 'contains' })
-      ).toEqual(['Nika', 'airmax']);
+        highlighted('Acma super zyntek', 'Acme zyntek', { mode: 'contains' })
+      ).toEqual(['Acma', 'zyntek']);
     });
 
     it('is a no-op change for default (prefix) mode', () => {
-      expect(highlighted('New balance airmax', 'max')).toEqual([]);
+      expect(highlighted('Lumen zyntek', 'tek')).toEqual([]);
     });
   });
 
@@ -82,9 +82,9 @@ describe('computeHighlightRanges', () => {
     it('can be made stricter than the default table', () => {
       // Default tolerance allows 1 substitution at this length; forcing 0
       // should reject what would otherwise be a fuzzy match.
-      expect(highlighted('airmax', 'airnax')).toEqual(['airmax']);
+      expect(highlighted('zyntek', 'zyntok')).toEqual(['zyntek']);
       expect(
-        highlighted('airmax', 'airnax', { typoTolerance: () => 0 })
+        highlighted('zyntek', 'zyntok', { typoTolerance: () => 0 })
       ).toEqual([]);
     });
 

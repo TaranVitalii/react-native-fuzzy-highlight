@@ -2,7 +2,7 @@ export type TypoToleranceFn = (comparedLength: number) => number;
 
 /**
  * Max substitutions tolerated for a fuzzy match, scaled by the length of the
- * compared window. Short words require an exact match so query "Nik" never
+ * compared window. Short words require an exact match so query "Acm" never
  * fuzzy-matches unrelated 3-letter prefixes.
  */
 export function defaultTypoTolerance(comparedLength: number): number {
@@ -19,8 +19,8 @@ export function defaultTypoTolerance(comparedLength: number): number {
  *
  * Deliberately substitution-only (Hamming, not Levenshtein): no insertions or
  * deletions, so the match length is always min(query.length, target.length)
- * with no backtracking needed. This is what makes "Nike" vs "Nika" highlight
- * the whole 4-char word, while "Nik" vs "Nike" highlights only 3 chars.
+ * with no backtracking needed. This is what makes "Acme" vs "Acma" highlight
+ * the whole 4-char word, while "Acm" vs "Acme" highlights only 3 chars.
  */
 export function fuzzyPrefixMatchLength(
   query: string,
@@ -50,7 +50,7 @@ export interface ContainsMatch {
 
 /**
  * Like fuzzyPrefixMatchLength, but `query` may align starting at any offset
- * within `target`, not just offset 0 (e.g. "max" matches "airmax" at offset
+ * within `target`, not just offset 0 (e.g. "tek" matches "zyntek" at offset
  * 3). Returns the longest match found, ties broken by earliest start.
  */
 export function fuzzyContainsMatch(
