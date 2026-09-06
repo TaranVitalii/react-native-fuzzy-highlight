@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { computeHighlightRanges } from './computeHighlightRanges';
+import { getCachedHighlightRanges } from './highlightRangesCache';
 import type { HighlightMatchOptions, HighlightRange } from './types';
 
 export function useHighlightRanges(
@@ -8,7 +8,7 @@ export function useHighlightRanges(
   options?: HighlightMatchOptions
 ): HighlightRange[] {
   return useMemo(
-    () => computeHighlightRanges(text, query, options),
+    () => getCachedHighlightRanges(text, query, options),
     [text, query, options]
   );
 }

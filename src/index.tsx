@@ -2,6 +2,10 @@ export { HighlightText } from './HighlightText';
 export type { HighlightTextProps } from './HighlightText';
 export { useHighlightRanges } from './useHighlightRanges';
 export { computeHighlightRanges } from './computeHighlightRanges';
+export {
+  getCachedHighlightRanges,
+  clearHighlightRangesCache,
+} from './highlightRangesCache';
 export type {
   HighlightRange,
   HighlightMatchMode,

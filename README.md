@@ -48,7 +48,7 @@ Both are configurable via `matchOptions` (on `<HighlightText>`, `useHighlightRan
 computeHighlightRanges('zyntek', 'zyntok', { typoTolerance: () => 0 }); // => [] (no tolerance)
 ```
 
-`matchOptions` is compared by reference in `useHighlightRanges`'s memoization — pass a stable object (e.g. defined outside the component, or via `useMemo`) rather than a fresh literal on every render.
+`matchOptions` is compared by reference in `useHighlightRanges`'s memoization — pass a stable object (e.g. defined outside the component, or via `useMemo`) rather than a fresh literal on every render. Passing a non-default `matchOptions` also bypasses the shared cache described below (a custom `typoTolerance` function can't be folded into a cache key), so it's recomputed on every call.
 
 ## Installation
 
@@ -99,6 +99,10 @@ const ranges = computeHighlightRanges('Acma super zyntek', 'Acme zyntek');
 ```
 
 `HighlightRange` is `{ start: number; end: number }`, indexing into the original `text` string.
+
+### Caching
+
+`useHighlightRanges` (and therefore `<HighlightText>`) shares a single bounded LRU cache (500 entries) across your whole app, keyed by `(text, query)`. This helps beyond what a per-component `useMemo` can: repeated pairs across different rows (duplicate list items) or across remounts (a row scrolled out of a virtualized list's recycling window and back in) skip recomputation. `computeHighlightRanges` itself stays uncached and pure, for headless or test use. If you need caching without React, use `getCachedHighlightRanges` directly; `clearHighlightRangesCache()` resets it.
 
 ## Props
 
