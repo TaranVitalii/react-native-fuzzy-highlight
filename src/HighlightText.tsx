@@ -2,11 +2,13 @@ import { memo, useMemo } from 'react';
 import { Text } from 'react-native';
 import type { StyleProp, TextProps, TextStyle } from 'react-native';
 import { useHighlightRanges } from './useHighlightRanges';
+import type { HighlightMatchOptions } from './types';
 
 export interface HighlightTextProps extends Omit<TextProps, 'children'> {
   text: string;
   query: string;
   highlightStyle?: StyleProp<TextStyle>;
+  matchOptions?: HighlightMatchOptions;
 }
 
 interface Segment {
@@ -51,13 +53,19 @@ function HighlightTextComponent({
   query,
   style,
   highlightStyle,
+  matchOptions,
+  accessibilityLabel,
   ...rest
 }: HighlightTextProps) {
-  const ranges = useHighlightRanges(text, query);
+  const ranges = useHighlightRanges(text, query, matchOptions);
   const segments = useMemo(() => buildSegments(text, ranges), [text, ranges]);
 
   return (
-    <Text style={style} {...rest}>
+    <Text
+      style={style}
+      accessibilityLabel={accessibilityLabel ?? text}
+      {...rest}
+    >
       {segments.map((segment, index) =>
         segment.highlighted ? (
           <Text key={index} style={highlightStyle}>
