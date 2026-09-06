@@ -13,7 +13,7 @@ const PRODUCTS = [
   'Acme comet flow',
   'Vortex glimmer',
   'Acme lunar drift',
-  'Orbit zyntek',
+  'Lumen zyntek',
 ];
 
 export default function App() {
