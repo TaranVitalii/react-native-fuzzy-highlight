@@ -6,4 +6,8 @@ export {
   getCachedHighlightRanges,
   clearHighlightRangesCache,
 } from './highlightRangesCache';
-export type { HighlightRange } from './types';
+export type {
+  HighlightRange,
+  HighlightMatchMode,
+  HighlightMatchOptions,
+} from './types';

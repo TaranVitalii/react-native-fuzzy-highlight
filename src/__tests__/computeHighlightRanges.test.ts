@@ -1,7 +1,12 @@
 import { computeHighlightRanges } from '../computeHighlightRanges';
+import type { HighlightMatchOptions } from '../types';
 
-function highlighted(text: string, query: string) {
-  return computeHighlightRanges(text, query).map((r) =>
+function highlighted(
+  text: string,
+  query: string,
+  options?: HighlightMatchOptions
+) {
+  return computeHighlightRanges(text, query, options).map((r) =>
     text.slice(r.start, r.end)
   );
 }
@@ -53,5 +58,42 @@ describe('computeHighlightRanges', () => {
 
   it('lets one query token match more than one target token', () => {
     expect(highlighted('super superb', 'super')).toEqual(['super', 'super']);
+  });
+
+  describe('mode: "contains"', () => {
+    it('matches a query word starting anywhere inside a target word', () => {
+      expect(highlighted('Lumen zyntek', 'tek', { mode: 'contains' })).toEqual([
+        'tek',
+      ]);
+    });
+
+    it('still matches at the start of a word (superset of prefix mode)', () => {
+      expect(
+        highlighted('Acma super zyntek', 'Acme zyntek', { mode: 'contains' })
+      ).toEqual(['Acma', 'zyntek']);
+    });
+
+    it('is a no-op change for default (prefix) mode', () => {
+      expect(highlighted('Lumen zyntek', 'tek')).toEqual([]);
+    });
+  });
+
+  describe('typoTolerance override', () => {
+    it('can be made stricter than the default table', () => {
+      // Default tolerance allows 1 substitution at this length; forcing 0
+      // should reject what would otherwise be a fuzzy match.
+      expect(highlighted('zyntek', 'zyntok')).toEqual(['zyntek']);
+      expect(
+        highlighted('zyntek', 'zyntok', { typoTolerance: () => 0 })
+      ).toEqual([]);
+    });
+
+    it('can be made more lenient than the default table', () => {
+      // Default tolerance rejects a 3-char word with any substitution.
+      expect(highlighted('cat dog', 'cbt')).toEqual([]);
+      expect(highlighted('cat dog', 'cbt', { typoTolerance: () => 1 })).toEqual(
+        ['cat']
+      );
+    });
   });
 });

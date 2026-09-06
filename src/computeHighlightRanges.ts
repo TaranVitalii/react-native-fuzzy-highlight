@@ -1,6 +1,15 @@
 import { tokenize } from './tokenize';
-import { fuzzyPrefixMatchLength } from './match';
-import type { HighlightRange } from './types';
+import {
+  defaultTypoTolerance,
+  fuzzyContainsMatch,
+  fuzzyPrefixMatchLength,
+} from './match';
+import type { HighlightMatchOptions, HighlightRange } from './types';
+
+interface BestMatch {
+  start: number;
+  length: number;
+}
 
 /**
  * Computes which parts of `text` should be highlighted for `query`.
@@ -13,7 +22,8 @@ import type { HighlightRange } from './types';
  */
 export function computeHighlightRanges(
   text: string,
-  query: string
+  query: string,
+  options?: HighlightMatchOptions
 ): HighlightRange[] {
   if (!text) return [];
 
@@ -26,23 +36,41 @@ export function computeHighlightRanges(
   );
   if (targetTokens.length === 0 || queryTokens.length === 0) return [];
 
+  const mode = options?.mode ?? 'prefix';
+  const typoTolerance = options?.typoTolerance ?? defaultTypoTolerance;
+
   const ranges: HighlightRange[] = [];
 
   for (const targetToken of targetTokens) {
     const lowerTarget = targetToken.text.toLowerCase();
-    let bestLength = 0;
+    let best: BestMatch | null = null;
 
     for (const queryToken of queryTokens) {
-      const matchLength = fuzzyPrefixMatchLength(queryToken, lowerTarget);
-      if (matchLength !== null && matchLength > bestLength) {
-        bestLength = matchLength;
+      if (mode === 'contains') {
+        const match = fuzzyContainsMatch(
+          queryToken,
+          lowerTarget,
+          typoTolerance
+        );
+        if (match !== null && (best === null || match.length > best.length)) {
+          best = match;
+        }
+      } else {
+        const length = fuzzyPrefixMatchLength(
+          queryToken,
+          lowerTarget,
+          typoTolerance
+        );
+        if (length !== null && (best === null || length > best.length)) {
+          best = { start: 0, length };
+        }
       }
     }
 
-    if (bestLength > 0) {
+    if (best !== null && best.length > 0) {
       ranges.push({
-        start: targetToken.start,
-        end: targetToken.start + bestLength,
+        start: targetToken.start + best.start,
+        end: targetToken.start + best.start + best.length,
       });
     }
   }

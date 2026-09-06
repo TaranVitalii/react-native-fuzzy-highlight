@@ -7,6 +7,10 @@
 
 Highlight the parts of a string that match a search query — tolerant of typos, without over-highlighting. Searching `Acme zyntek` highlights `Acme` inside a mistyped `Acma`, highlights `zyntek` wherever it appears, and leaves unrelated words alone. Typing just `Acm` highlights only `Acm` inside `Acme`, not the trailing `e`.
 
+<p align="center">
+  <img src="./docs/example.png" width="320" alt="Searching 'Acme' highlights 'Acma' (typo-tolerant) and 'Acme' in the list, leaving unrelated words alone" />
+</p>
+
 - **Typo-tolerant, per word** — each word of the query is matched independently against each word of the target text, so word order in the query doesn't matter.
 - **Highlights only what matched** — a partial query (`Acm`) highlights only the matched prefix, not the rest of the word it's typing towards.
 - **No over-matching on short words** — words under 4 characters require an exact prefix; typo tolerance only kicks in once there's enough signal to make it safe.
@@ -28,6 +32,23 @@ How many substitutions are tolerated scales with word length, so short words sta
 | ≥ 8 chars | 2 |
 
 Matching and rendering are case-insensitive by default and independent of query word order — `"zyntek acme"` matches the same words as `"acme zyntek"`.
+
+Both are configurable via `matchOptions` (on `<HighlightText>`, `useHighlightRanges`, and `computeHighlightRanges`):
+
+```tsx
+<HighlightText
+  text="Lumen zyntek"
+  query="tek"
+  matchOptions={{ mode: 'contains' }} // matches "tek" inside "zyntek", not just word-initial
+/>
+```
+
+```ts
+// stricter or looser than the default table
+computeHighlightRanges('zyntek', 'zyntok', { typoTolerance: () => 0 }); // => [] (no tolerance)
+```
+
+`matchOptions` is compared by reference in `useHighlightRanges`'s memoization — pass a stable object (e.g. defined outside the component, or via `useMemo`) rather than a fresh literal on every render. Passing a non-default `matchOptions` also bypasses the shared cache described below (a custom `typoTolerance` function can't be folded into a cache key), so it's recomputed on every call.
 
 ## Installation
 
@@ -91,6 +112,8 @@ const ranges = computeHighlightRanges('Acma super zyntek', 'Acme zyntek');
 | `query` | `string` | — | The search query. Empty or whitespace-only query renders `text` unhighlighted. |
 | `highlightStyle` | `StyleProp<TextStyle>` | — | Style applied only to matched segments. |
 | `style` | `StyleProp<TextStyle>` | — | Style applied to the outer `Text`, same as a regular `<Text style>`. |
+| `matchOptions` | `HighlightMatchOptions` | `{ mode: 'prefix' }` | See [How it works](#how-it-works) — `mode: 'contains'` and/or a custom `typoTolerance`. |
+| `accessibilityLabel` | `string` | `text` | Defaults to the full plain text, since the matched segments render as several nested `Text` nodes a screen reader would otherwise read fragmented. |
 | ...rest | `TextProps` | — | Any other `Text` prop (`numberOfLines`, `onPress`, etc.) is passed through. |
 
 ## Contributing

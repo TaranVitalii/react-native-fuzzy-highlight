@@ -59,4 +59,16 @@ describe('getCachedHighlightRanges', () => {
     expect(recomputed).toEqual(oldest);
     expect(recomputed).not.toBe(oldest);
   });
+
+  it('bypasses the cache when matchOptions are given', () => {
+    const options = { typoTolerance: () => 0 };
+    const first = getCachedHighlightRanges('zyntek', 'zyntok', options);
+    const second = getCachedHighlightRanges('zyntek', 'zyntok', options);
+    expect(first).toEqual(computeHighlightRanges('zyntek', 'zyntok', options));
+    expect(second).not.toBe(first);
+
+    // Doesn't pollute the default (no-options) cache entry for the same pair.
+    const defaultResult = getCachedHighlightRanges('zyntek', 'zyntok');
+    expect(defaultResult).toEqual(computeHighlightRanges('zyntek', 'zyntok'));
+  });
 });
