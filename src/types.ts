@@ -19,4 +19,13 @@ export interface HighlightMatchOptions {
    * substitutions to tolerate before rejecting the match.
    */
   typoTolerance?: (comparedLength: number) => number;
+  /**
+   * Default true. Strips diacritics (accents, tildes, umlauts, etc.) from
+   * both `text` and `query` before comparing, so e.g. a query of "cafe"
+   * matches "café" and vice versa — the same "tolerant of superficial
+   * differences" spirit as the built-in typo tolerance, just for a
+   * different kind of superficial difference. Set false to require an
+   * exact diacritic match.
+   */
+  ignoreDiacritics?: boolean;
 }

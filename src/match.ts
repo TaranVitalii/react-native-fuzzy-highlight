@@ -11,22 +11,28 @@ export function defaultTypoTolerance(comparedLength: number): number {
   return 2;
 }
 
+export interface PrefixMatch {
+  length: number;
+  mismatches: number;
+}
+
 /**
- * Compares `query` against the start of `target` (both expected pre-lowercased)
- * allowing up to `typoTolerance(comparedLength)` character substitutions.
- * Returns how many leading characters of `target` matched, or null if the
- * mismatch count exceeds the threshold.
+ * Compares `query` against the start of `target` (both expected pre-lowered/
+ * normalized) allowing up to `typoTolerance(comparedLength)` character
+ * substitutions. Returns the matched length and how many of those
+ * characters were substitutions (0 = exact), or null if the mismatch count
+ * exceeds the threshold.
  *
  * Deliberately substitution-only (Hamming, not Levenshtein): no insertions or
  * deletions, so the match length is always min(query.length, target.length)
  * with no backtracking needed. This is what makes "Acme" vs "Acma" highlight
  * the whole 4-char word, while "Acm" vs "Acme" highlights only 3 chars.
  */
-export function fuzzyPrefixMatchLength(
+export function fuzzyPrefixMatch(
   query: string,
   target: string,
   typoTolerance: TypoToleranceFn = defaultTypoTolerance
-): number | null {
+): PrefixMatch | null {
   const len = Math.min(query.length, target.length);
   if (len === 0) return null;
 
@@ -40,18 +46,19 @@ export function fuzzyPrefixMatchLength(
     }
   }
 
-  return len;
+  return { length: len, mismatches };
 }
 
 export interface ContainsMatch {
   start: number;
   length: number;
+  mismatches: number;
 }
 
 /**
- * Like fuzzyPrefixMatchLength, but `query` may align starting at any offset
- * within `target`, not just offset 0 (e.g. "tek" matches "zyntek" at offset
- * 3). Returns the longest match found, ties broken by earliest start.
+ * Like fuzzyPrefixMatch, but `query` may align starting at any offset within
+ * `target`, not just offset 0 (e.g. "tek" matches "zyntek" at offset 3).
+ * Returns the longest match found, ties broken by earliest start.
  */
 export function fuzzyContainsMatch(
   query: string,
@@ -61,13 +68,9 @@ export function fuzzyContainsMatch(
   let best: ContainsMatch | null = null;
 
   for (let start = 0; start < target.length; start++) {
-    const length = fuzzyPrefixMatchLength(
-      query,
-      target.slice(start),
-      typoTolerance
-    );
-    if (length !== null && (best === null || length > best.length)) {
-      best = { start, length };
+    const match = fuzzyPrefixMatch(query, target.slice(start), typoTolerance);
+    if (match !== null && (best === null || match.length > best.length)) {
+      best = { start, length: match.length, mismatches: match.mismatches };
     }
   }
 

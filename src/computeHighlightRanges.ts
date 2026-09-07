@@ -2,8 +2,9 @@ import { tokenize } from './tokenize';
 import {
   defaultTypoTolerance,
   fuzzyContainsMatch,
-  fuzzyPrefixMatchLength,
+  fuzzyPrefixMatch,
 } from './match';
+import { stripDiacritics } from './diacritics';
 import type { HighlightMatchOptions, HighlightRange } from './types';
 
 interface BestMatch {
@@ -31,38 +32,42 @@ export function computeHighlightRanges(
   if (!trimmedQuery) return [];
 
   const targetTokens = tokenize(text);
-  const queryTokens = tokenize(trimmedQuery).map((token) =>
-    token.text.toLowerCase()
-  );
+  const queryTokens = tokenize(trimmedQuery).map((token) => token.text);
   if (targetTokens.length === 0 || queryTokens.length === 0) return [];
 
   const mode = options?.mode ?? 'prefix';
   const typoTolerance = options?.typoTolerance ?? defaultTypoTolerance;
+  const ignoreDiacritics = options?.ignoreDiacritics ?? true;
+  const normalize = (s: string): string => {
+    const lower = s.toLowerCase();
+    return ignoreDiacritics ? stripDiacritics(lower) : lower;
+  };
+  const normalizedQueryTokens = queryTokens.map(normalize);
 
   const ranges: HighlightRange[] = [];
 
   for (const targetToken of targetTokens) {
-    const lowerTarget = targetToken.text.toLowerCase();
+    const normalizedTarget = normalize(targetToken.text);
     let best: BestMatch | null = null;
 
-    for (const queryToken of queryTokens) {
+    for (const queryToken of normalizedQueryTokens) {
       if (mode === 'contains') {
         const match = fuzzyContainsMatch(
           queryToken,
-          lowerTarget,
+          normalizedTarget,
           typoTolerance
         );
         if (match !== null && (best === null || match.length > best.length)) {
           best = match;
         }
       } else {
-        const length = fuzzyPrefixMatchLength(
+        const match = fuzzyPrefixMatch(
           queryToken,
-          lowerTarget,
+          normalizedTarget,
           typoTolerance
         );
-        if (length !== null && (best === null || length > best.length)) {
-          best = { start: 0, length };
+        if (match !== null && (best === null || match.length > best.length)) {
+          best = { start: 0, length: match.length };
         }
       }
     }

@@ -78,6 +78,28 @@ describe('computeHighlightRanges', () => {
     });
   });
 
+  describe('diacritics', () => {
+    it('ignores diacritics by default, matching either direction', () => {
+      expect(highlighted('Café Zürich', 'cafe')).toEqual(['Café']);
+      expect(highlighted('Cafe Zurich', 'café')).toEqual(['Cafe']);
+    });
+
+    it('can be made diacritic-sensitive via ignoreDiacritics: false', () => {
+      // A short (< 4 char) word requires an exact match with no typo
+      // tolerance at all, so a diacritic difference alone is enough to
+      // demonstrate the option — at 4+ chars, the existing typo-tolerance
+      // table would already forgive a single accent mismatch as "just
+      // another substitution", independent of this option.
+      expect(highlighted('día', 'dia', { ignoreDiacritics: false })).toEqual(
+        []
+      );
+      expect(highlighted('día', 'dia')).toEqual(['día']);
+      expect(highlighted('día', 'día', { ignoreDiacritics: false })).toEqual([
+        'día',
+      ]);
+    });
+  });
+
   describe('typoTolerance override', () => {
     it('can be made stricter than the default table', () => {
       // Default tolerance allows 1 substitution at this length; forcing 0
