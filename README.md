@@ -14,6 +14,8 @@ Highlight the parts of a string that match a search query — tolerant of typos,
 - **Typo-tolerant, per word** — each word of the query is matched independently against each word of the target text, so word order in the query doesn't matter.
 - **Highlights only what matched** — a partial query (`Acm`) highlights only the matched prefix, not the rest of the word it's typing towards.
 - **No over-matching on short words** — words under 4 characters require an exact prefix; typo tolerance only kicks in once there's enough signal to make it safe.
+- **Diacritics-insensitive by default** — a query of `cafe` matches `café` and vice versa; disable via `matchOptions.ignoreDiacritics: false`.
+- **Relevance scoring** — `computeHighlightScore`/`useHighlightScore` rate how well a query matches a text from 0 to 1, for sorting a filtered list by relevance rather than just highlighting it.
 - **Headless core** — the matching logic is plain, framework-agnostic TypeScript (`computeHighlightRanges`); the React Native `<HighlightText>` component is a thin, memoized renderer on top.
 
 ## How it works
@@ -31,7 +33,7 @@ How many substitutions are tolerated scales with word length, so short words sta
 | 4–7 chars | 1 |
 | ≥ 8 chars | 2 |
 
-Matching and rendering are case-insensitive by default and independent of query word order — `"zyntek acme"` matches the same words as `"acme zyntek"`.
+Matching and rendering are case-insensitive by default and independent of query word order — `"zyntek acme"` matches the same words as `"acme zyntek"`. Diacritics are also ignored by default, the same "tolerant of superficial differences" spirit as typo tolerance — `"cafe"` matches `"café"` and vice versa; set `matchOptions.ignoreDiacritics: false` to require an exact accent match.
 
 Both are configurable via `matchOptions` (on `<HighlightText>`, `useHighlightRanges`, and `computeHighlightRanges`):
 
@@ -98,11 +100,35 @@ const ranges = computeHighlightRanges('Acma super zyntek', 'Acme zyntek');
 // => [{ start: 0, end: 4 }, { start: 11, end: 17 }]
 ```
 
+### Ranking by relevance
+
+Highlighting tells you *where* a query matched, but a search UI usually also needs to know *how well* it matched, to sort the best results to the top. `computeHighlightScore` (and its memoized/cached counterpart `useHighlightScore`) rates a `(text, query)` pair from `0` (no match at all) to `1` (every query word matched some target word fully and exactly) — deliberately not tied to `computeHighlightRanges`, so sorting a whole list by relevance doesn't require rendering (or even computing) every row's highlight ranges first:
+
+```ts
+import { computeHighlightScore } from 'react-native-fuzzy-highlight';
+
+const products = [
+  { id: '1', name: 'Acme Corp' },
+  { id: '2', name: 'Acme Zyntek' },
+  { id: '3', name: 'Unrelated Co' },
+];
+
+const query = 'zyntek';
+const ranked = [...products]
+  .map((p) => ({ ...p, score: computeHighlightScore(p.name, query) }))
+  .filter((p) => p.score > 0)
+  .sort((a, b) => b.score - a.score);
+```
+
+A query word that matches nothing contributes `0` to the average (dragging the overall score down, not just being ignored); a query word that only matches a *prefix* of a longer target word, or matches with a tolerated typo, scores somewhere between `0` and `1` rather than the full `1` an exact, complete match gets. Same `matchOptions` (`mode`, `typoTolerance`, `ignoreDiacritics`) apply as for `computeHighlightRanges`, and the two agree on what counts as a match — score `0` and empty `ranges` go together.
+
 `HighlightRange` is `{ start: number; end: number }`, indexing into the original `text` string.
 
 ### Caching
 
 `useHighlightRanges` (and therefore `<HighlightText>`) shares a single bounded LRU cache (500 entries) across your whole app, keyed by `(text, query)`. This helps beyond what a per-component `useMemo` can: repeated pairs across different rows (duplicate list items) or across remounts (a row scrolled out of a virtualized list's recycling window and back in) skip recomputation. `computeHighlightRanges` itself stays uncached and pure, for headless or test use. If you need caching without React, use `getCachedHighlightRanges` directly; `clearHighlightRangesCache()` resets it.
+
+`useHighlightScore` has its own separate 500-entry LRU cache (`getCachedHighlightScore`/`clearHighlightScoreCache`), for the same reason: re-scoring every row of a list on every keystroke is exactly the repeated-`(text, query)` pattern the cache is for. Passing a non-default `matchOptions` bypasses both caches (see above).
 
 ## Props
 
@@ -112,7 +138,7 @@ const ranges = computeHighlightRanges('Acma super zyntek', 'Acme zyntek');
 | `query` | `string` | — | The search query. Empty or whitespace-only query renders `text` unhighlighted. |
 | `highlightStyle` | `StyleProp<TextStyle>` | — | Style applied only to matched segments. |
 | `style` | `StyleProp<TextStyle>` | — | Style applied to the outer `Text`, same as a regular `<Text style>`. |
-| `matchOptions` | `HighlightMatchOptions` | `{ mode: 'prefix' }` | See [How it works](#how-it-works) — `mode: 'contains'` and/or a custom `typoTolerance`. |
+| `matchOptions` | `HighlightMatchOptions` | `{ mode: 'prefix', ignoreDiacritics: true }` | See [How it works](#how-it-works) — `mode: 'contains'`, a custom `typoTolerance`, and/or `ignoreDiacritics: false`. |
 | `accessibilityLabel` | `string` | `text` | Defaults to the full plain text, since the matched segments render as several nested `Text` nodes a screen reader would otherwise read fragmented. |
 | ...rest | `TextProps` | — | Any other `Text` prop (`numberOfLines`, `onPress`, etc.) is passed through. |
 

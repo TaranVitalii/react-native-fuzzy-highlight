@@ -6,6 +6,12 @@ export {
   getCachedHighlightRanges,
   clearHighlightRangesCache,
 } from './highlightRangesCache';
+export { useHighlightScore } from './useHighlightScore';
+export { computeHighlightScore } from './computeHighlightScore';
+export {
+  getCachedHighlightScore,
+  clearHighlightScoreCache,
+} from './highlightScoreCache';
 export type {
   HighlightRange,
   HighlightMatchMode,
